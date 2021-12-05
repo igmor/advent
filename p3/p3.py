@@ -1,6 +1,6 @@
 import argparse
 
-def p3(l: list[tuple[str, int]]):
+def p3_1(l: list[tuple[str, int]]):
     x = 0
     d = 0
     for (direction, by) in l:
@@ -10,6 +10,21 @@ def p3(l: list[tuple[str, int]]):
             d -= by
         if direction == "down":
             d += by
+    return x * d
+
+def p3_2(l: list[tuple[str, int]]):
+    x = 0
+    d = 0
+    aim = 0
+    for (direction, by) in l:
+        if direction == "forward":
+            d += aim * by
+            x += by
+        if direction == "up":
+            aim -= by
+        if direction == "down":
+            aim += by
+    print(aim, d, x)
     return x * d
 
 def parse(lines: list[str]) -> list[tuple[str, int]]:
@@ -28,6 +43,7 @@ if __name__ == "__main__":
     lines = f.readlines()
     pos = parse(lines)
     print(pos)
-    print(p3(pos))
+    print(p3_1(pos))
+    print(p3_2(pos))
     f.close()
 
