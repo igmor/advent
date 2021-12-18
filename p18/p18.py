@@ -1,156 +1,106 @@
 import argparse
 import sys
+import math
 import resource
 import copy
 import bisect
 from collections import defaultdict
 from functools import reduce
 
-hex_to_binary = {
-    '0': '0000',
-    '1': '0001',
-    '2': '0010',
-    '3': '0011',
-    '4': '0100',
-    '5': '0101',
-    '6': '0110',
-    '7': '0111',
-    '8': '1000',
-    '9': '1001',
-    'A': '1010',
-    'B': '1011',
-    'C': '1100',
-    'D': '1101',
-    'E': '1110',
-    'F': '1111'    
-}
-
 d = defaultdict(int)
 
-def parse_litaral(bin:str) -> tuple[int, int, str]:
-    out = ''
-    end = bin
-    i = 0
-    while len(end) > 0 and end[0] == '1':
-        out += end[1:5]
-        i += 5
-        end = end[5:]
-    if len(end) > 0:
-        out += end[1:5]
-        i += 5
-        end = end[5:]
-    return i, int(out,2), end
+def p17_1(x1,x2,y1,y2:int) -> int:
+    x_low = int((-1 + math.sqrt(1+4*2*x1))/2)
+    x_high = int((-1 + math.sqrt(1+4*2*x2))/2)
 
-def parse_operator(bin:str) -> tuple[int, int, list[str], str]:
-    total = 0
+    print(x1,x2,y1,y2)
+    print(x_low, x_high)
+
+    maxy = 0
+
+    for d1 in range(x_low, x_high+1):
+        for d2 in range(200):
+            x = d1
+            y = d2
+
+            d11 = d1
+            d22 = d2
+
+            y_high = 0
+            while True:
+                if x >= x1 and x <= x2 and y >= y1 and y <= y2:
+                    #print(x, y, d1, d2, y_high)
+                    if y_high > maxy:
+                        maxy = y_high
+
+                    break
+                if x > x2 or y < y1:
+                    x = 0
+                    y = 0
+                    break
+                if d11 > 0:
+                    d11 -= 1
+                elif d11 < 0:
+                    d11 += 1
+                d22 -= 1
+                x += d11
+                y += d22
+                if y > y_high:
+                    y_high = y
+
+
+    return maxy
+
+def p17_2(x1,x2,y1,y2:int) -> int:
+    x_low = int((-1 + math.sqrt(1+4*2*x1))/2)
+    x_high = int((-1 + math.sqrt(1+4*2*x2))/2)
+
+    print(x1,x2,y1,y2)
+    print(x_low, x_high)
+
+    maxy = 0
+
     out = []
+    for d1 in range(1000):
+        for d2 in range(-200, 200):
+            x = d1
+            y = d2
 
-    version = 0
-    if bin[0] == '0':
-        total_length = int(bin[1:16], 2)
-        bin = bin[16:]
-        i = 0
-        total += 16
-        while i < total_length:
-            tp, v, length, ops, bin = parse_packet(bin)
-            total += length
-            i += length
-            version += v
-            out.append((tp, ops))
-    else:
-        total_packets = int(bin[1:12], 2)
-        bin = bin[12:]
-        total += 12
-        for i in range(total_packets):
-            tp, v, length, ops, bin = parse_packet(bin)
-            total += length
-            version += v
-            out.append((tp, ops))
-    return version, total, out, bin
-    
-def parse_packet(bin:str) -> tuple[int, int, int, list[str], str]:
-    packet_version = bin[:3]
-    packet_type = int(bin[3:6], 2)
+            d11 = d1
+            d22 = d2
 
-    bin = bin[6:]
-    out = []
-    total = 6
+            y_high = 0
+            while True:
+                #if d1 == 6 and d2 == 3:
+                #    print(x,y)
+                if x >= x1 and x <= x2 and y >= y1 and y <= y2:
+                    print(x, y, d1, d2, y_high)
+                    out.append((x, y, d1, d2, y_high))
+                    if y_high > maxy:
+                        maxy = y_high
 
-    version = 0
-    if packet_type == 4:
-        length, literal_val, bin = parse_litaral(bin)
-        out.append(literal_val)
-        total += length
-    else:
-        version, length, ops, bin = parse_operator(bin)
-        out.append(ops)
-        total += length
+                    break
+                if x > x2 or y < y1:
+                    x = 0
+                    y = 0
+                    break
+                if d11 > 0:
+                    d11 -= 1
+                elif d11 < 0:
+                    d11 += 1
+                d22 -= 1
+                x += d11
+                y += d22
+                if y > y_high:
+                    y_high = y
 
-    return packet_type, int(packet_version,2) + version, total, out, bin
-
-def p16_1(bin:str) -> list[str]:
-    tp, version, length, ops, bin = parse_packet(bin)
-    return tp, ops, version
-
-def compute(packet) -> int:
-    print("packet:", packet)
-    if type(packet) == int:
-        return packet
-    if type(packet) == list and len(packet) == 1:
-        return compute(packet[0])
-
-    op, ops = packet
-    print("packet:", op, ops)
-
-    if op == 4:
-        return ops[0]
-
-    if type(ops) == list and len(ops) == 1:
-        return compute((op, ops[0]))
-    if type(ops) == tuple:
-        return compute((op, [compute(ops)]))
-
-    if type(ops) == int:
-        ops = [ops]
-        
-    if op == 0:
-        args = []
-        for o in ops:
-            args.append(compute(o))
-        return sum(args)
-    if op == 1:
-        args = []
-        for o in ops:
-            args.append(compute(o))
-        return reduce(lambda x, y: x * y, args)
-    if op == 2:
-        args = []
-        for o in ops:
-            args.append(compute(o))
-        return min(args)
-    if op == 3:
-        args = []
-        for o in ops:
-            args.append(compute(o))
-        return max(args)
-    if op == 5:
-        return 1 if compute(ops[0]) > compute(ops[1]) else 0
-    if op == 6:
-        return 1 if compute(ops[0]) < compute(ops[1]) else 0
-    if op == 7:
-        return 1 if compute(ops[0]) == compute(ops[1]) else 0
-    
-
-def p16_2(bin:str) -> list[str]:
-    tp, version, length, ops, bin = parse_packet(bin)
-    return compute((tp, ops))
-
-def parse(lines: list[str]) -> str:
-    out = ''
-    for c in lines[0].strip():
-        out += hex_to_binary[c] 
     print(out)
-    return out
+    return len(out)
+
+def parse(lines: list[str]) -> tuple[int, int, int, int]:
+    x1, x2 = lines[0].strip().split(',')
+    y1, y2 = lines[1].strip().split(',')
+    return int(x1), int(x2), int(y1), int(y2)
 
 if __name__ == "__main__":
     sys.setrecursionlimit(10**6)
@@ -161,9 +111,9 @@ if __name__ == "__main__":
 
     f = open(args.input, 'r')
     lines = f.readlines()
-    bin = parse(lines)
-    print(p16_1(bin))
-    print(p16_2(bin))
+    x1, x2, y1, y2 = parse(lines)
+    print(p17_1(x1, x2, y1, y2))
+    print(p17_2(x1, x2, y1, y2))
 
     f.close()
 
