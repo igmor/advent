@@ -106,31 +106,17 @@ def p12(result: List[List[Tuple[int, int]]], minx, maxx, miny, maxy: int) -> int
 
     segments = []
     out = []
-    for s, b in result:
-        print(s, b)
-        md = manh(s, b)
-        fromx = max(minx, s[0] - md)
-        tox = min(maxx, s[0] + md)
-        fromy = max(miny, s[1] - md)
-        toy = min(maxy, s[1] + md)
-        left = None
-        right = None
-        for ty in range(fromy, toy+1):
-            for x in range(s[0], fromx, -1):
-                if manh((x, ty), s) <= md:
-                    left = x
-                else:
-                    break
-            for x in range(s[0], tox+1):
-                if manh((x, ty), s) <= md:
-                    right = x
-                else:
-                    break
-            if left:
-                segments.append((left, right))
-                un = union_of_sections(segments)
-                out.append(un)
-    print(out)
+
+    for ty in range(0, 4000000):
+        segments = []
+        for s, b in result:
+            md = manh(s, b)
+            if s[1] - md <= ty <= s[1] + md:
+                d = md - abs(ty - s[1])
+                segments.append((s[0] - d, s[0] + d + 1))
+        un = union_of_sections(segments)
+        if len(un) > 1:
+            return un[0][1]*4000000 + ty
     return 0
 
 if __name__ == "__main__":
