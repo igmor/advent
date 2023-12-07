@@ -57,5 +57,3 @@ if __name__ == "__main__":
     f.close()
     print(p12(cards))
     print(p21(cards))
-
-
