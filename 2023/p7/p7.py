@@ -63,7 +63,6 @@ def p12(hands: List[List[str]], bids: List[int]) -> int:
     return total
 
 cards1 = {'A': 13, 'K': 12, 'Q': 11, 'T': 9, '9': 8, '8': 7, '7': 6, '6': 5, '5': 4, '4': 3, '3': 2, '2': 1, 'J': 0}
-replacement_tbl = {}
 
 def p21(hands: List[List[str]], bids: List[int]) -> int:
     def modified_flash(flash):
@@ -144,12 +143,6 @@ def p21(hands: List[List[str]], bids: List[int]) -> int:
         elif rank(h1) < rank(h2):
             return -1
         else:
-            # flash_key = ''.join(h1)
-            # if flash_key in replacement_tbl:
-            #     h1 = replacement_tbl[flash_key]
-            # flash_key = ''.join(h2)
-            # if flash_key in replacement_tbl:
-            #     h2 = replacement_tbl[flash_key]
             for i in range(5):
                 ret = cmp_hand(h1[i], h2[i])
                 if ret != 0:
